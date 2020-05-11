@@ -1,0 +1,31 @@
+function checkSteps() {
+  var sheet = SpreadsheetApp.getActive().getSheetByName('Ideal');
+  
+  var fechas = sheet.getRange("a:a").getValues();
+
+  var j = fechas.filter(String).length;
+  
+  var imput = sheet.getRange(j, 1, 1, 9).getValues();
+  var titulos = sheet.getRange(1, 1, 1, 9).getValues();
+  
+  if (imput[0][1] <= 0.5){
+    enviarMail(titulos[0][1], imput[0][0], imput[0][1]);}
+  if (imput[0][2] <= 0.5){
+    enviarMail(titulos[0][2], imput[0][0], imput[0][2]);}
+
+  
+
+  
+  function enviarMail(titulo,fecha, valor){
+    
+    // Fetch the email address
+    var emailRange = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Correos").getRange("B2:B10");
+    var emailAddress = emailRange.getValues();
+  
+    // Send Alert Email.
+    var message = 'Chequear el paso ' + titulo + ' En el día ' + fecha + ' Con caida de  '+ valor; // Second column
+    var subject = 'Alerta Caida en el Paso '+ titulo;
+    MailApp.sendEmail(emailAddress, subject, message);
+    }}
+
+}
