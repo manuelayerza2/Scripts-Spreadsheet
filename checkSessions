@@ -1,0 +1,24 @@
+function CheckSessions() {
+  var hourSessionsRange = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Results").getRange("i:i"); 
+  var rangoDif = hourSessionsRange.getValues();
+  var fuentesRange = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Results").getRange("a:a"); º
+  var fuentes = fuentesRange.getValues();
+  var horaRango = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Results").getRange("b:b"); 
+  var hora = horaRango.getValues();
+  var sent = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Results").getRange("m:m"); 
+  var celdaSent = sent.getValues();
+  for (var i=0;i < 100;i++){
+    if (rangoDif[i]>0.5 && celdaSent[i]==1){
+    // Fetch the email address
+    var emailRange = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Email").getRange("B2:B7");
+    var emailAddress = emailRange.getValues();
+  
+    // Send Alert Email.
+    var message = 'Chequear la fuente ' + fuentes[i] + ' En la hora ' + hora[i] + ' Caida de  '+ rangoDif[i]; // Second column
+    var subject = 'Low Sessions Alert';
+    MailApp.sendEmail(emailAddress, subject, message);
+    //Marcar la fuente como enviada el email
+    celdaSent[i]=0;
+    }}
+
+}
