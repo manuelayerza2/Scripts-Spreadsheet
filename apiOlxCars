@@ -1,0 +1,140 @@
+function onOpen() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var menuItems = [
+    {name: 'Actualizar Feed', functionName: 'rulo'}
+  ];
+  spreadsheet.addMenu('Feed Update', menuItems);
+}
+
+function rulo() {
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var imput = sheet.getRange(2, 1, 10, 1).getValues();
+  var query = imput[1]+"";
+  var price_min = imput[3]+"";
+  var category = imput[5]+"";
+  var size = imput[7];
+  var size2 = div4(size);
+  var country = imput[9]+"";
+  sheet.getRange(2, 3, 5000,14).clear();
+  var headers = {
+    'x-origin-panamera':'production',
+    'x-panamera-host':country,
+  };
+  var options = {
+    "method" : "get",
+    "headers": headers,
+  };
+  var result1 = UrlFetchApp.fetch('https://api.letgo.cz/relevance/search?query='+query+'&category='+category+'&price_min='+price_min+'&status=active'+'&page=0'+'&size='+size2,options).getContentText();
+  var result2 = UrlFetchApp.fetch('https://api.letgo.cz/relevance/search?query='+query+'&category='+category+'&price_min='+price_min+'&status=active'+'&page=1'+'&size='+size2,options).getContentText();
+  var result3 = UrlFetchApp.fetch('https://api.letgo.cz/relevance/search?query='+query+'&category='+category+'&price_min='+price_min+'&status=active'+'&page=2'+'&size='+size2,options).getContentText();
+  var result4 = UrlFetchApp.fetch('https://api.letgo.cz/relevance/search?query='+query+'&category='+category+'&price_min='+price_min+'&status=active'+'&page=3'+'&size='+size2,options).getContentText();
+  
+  var parseo = JSON.parse(result1);
+  var parseo2 = JSON.parse(result2);
+  var parseo3 = JSON.parse(result3);
+  var parseo4 = JSON.parse(result4);
+  
+  var y = arreglo(parseo);
+  var z = arreglo(parseo2);
+  var u = arreglo(parseo3);
+  var v = arreglo(parseo4);
+ 
+  sheet.getRange(2, 3, y.length, y[0].length).setValues(y);
+  sheet.getRange(y.length+2, 3, z.length, z[0].length).setValues(z);
+  sheet.getRange(y.length+2+z.length, 3, u.length, u[0].length).setValues(u);
+  sheet.getRange(y.length+2+z.length+u.length, 3, v.length, v[0].length).setValues(v);
+}
+
+function transposeArray(array){
+  var result = [];
+  for (var col = 0; col < array[0].length; col++) { // Loop over array cols
+    result[col] = [];
+    for (var row = 0; row < array.length; row++) { // Loop over array rows
+      result[col][row] = array[row][col]; // Rotate
+    }
+  }
+  return result;
+}
+
+function arreglo(parseo)
+{
+   var ids = [];
+  var title = [];
+  var curr = [];
+  var make = [];
+  var year = [];
+  var model = [];
+  var condition = [];
+  var cartype = [];
+  var color = [];
+  var seller = [];
+  var mileage = [];
+  var fueltype = [];
+  var cartransmission = [];
+  var price = [];
+  var desc = [];
+  var img1 = [];
+  var replies = [];
+  var i = 0;
+  var j = 0;
+  //var response = JSON.stringify(data);
+ for (i in parseo.data){
+  ids[i] = parseo.data[i].id;
+   title[i] = parseo.data[i].title;
+  desc[i] = parseo.data[i].description;
+  replies[i] = parseo.data[i].replies;
+  price[i] = parseo.data[i].price.value.raw;
+  curr[i] = parseo.data[i].price.value.currency.post;
+   img1[i] = parseo.data[i].images[0].url;
+   
+    for (j in parseo.data[i].parameters){
+      if (parseo.data[i].parameters[j].key == "carmake")
+      make[i]=parseo.data[i].parameters[j].value;
+      if (parseo.data[i].parameters[j].key == "carmodel")
+        model[i]=parseo.data[i].parameters[j].value;
+      if (parseo.data[i].parameters[j].key == "year")
+      year[i]=parseo.data[i].parameters[j].value;
+      if (parseo.data[i].parameters[j].key == "sellertype")
+      seller[i]=parseo.data[i].parameters[j].value;
+      if (parseo.data[i].parameters[j].key == "mileage")
+      mileage[i]=parseo.data[i].parameters[j].value;
+      if (parseo.data[i].parameters[j].key == "condition")
+      condition[i]=parseo.data[i].parameters[j].value;
+      if (parseo.data[i].parameters[j].key == "color")
+      color[i]=parseo.data[i].parameters[j].value;
+      if (parseo.data[i].parameters[j].key == "cartype")
+      cartype[i]=parseo.data[i].parameters[j].value;
+      if (parseo.data[i].parameters[j].key == "fueltype")
+      fueltype[i]=parseo.data[i].parameters[j].value;
+      if (parseo.data[i].parameters[j].key == "cartransmission")
+      cartransmission[i]=parseo.data[i].parameters[j].value;
+    }}
+  var x = [ids, title,replies,price,curr,make,model,year,seller,mileage,condition,img1,color,cartype,fueltype,cartransmission];
+  var y = transposeArray(x);
+  return y;
+}
+
+function div4(size)
+{ 
+  size = size*1;
+  var size2;
+  switch (size%4)
+  {
+    case 0:
+      size2=size/4;
+      break;
+    case 1:
+      size2=(size+3)/4;
+      break;
+    case 2:
+      size2=(size+2)/4;
+      break;
+    case 3:
+      size2=(size+1)/4;
+      break;
+  }
+  return size2;
+}
+
+
+ 
