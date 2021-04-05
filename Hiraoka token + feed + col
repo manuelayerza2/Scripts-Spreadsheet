@@ -1,0 +1,208 @@
+function onOpen() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  var menuItems = [];
+  menuItems.push({name: "Actualizar Token", functionName: "token"});
+  menuItems.push(null); // line separator
+  menuItems.push({name: "Actualizar Feed", functionName: "feed"});
+  menuItems.push(null); // line separator
+  menuItems.push({name: "Ejecutar Safe", functionName: "safe"});
+  spreadsheet.addMenu('Feed Update', menuItems);
+}
+
+function token() {
+   var sheet = SpreadsheetApp.getActive().getSheetByName("Feed");
+  var sheet2 = SpreadsheetApp.getActive().getSheetByName("Max");
+   var headers = {
+    "Accept": "application/json",
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+    "Content-Type": "application/json"};  
+   var options = {
+    "async": true,
+    "crossDomain": true,
+    "method" : "POST",
+    "headers": headers,
+  };
+  var token = UrlFetchApp.fetch('https://hiraoka.com.pe/index.php/rest/V1/integration/admin/token?username=mckinsey.hiraoka@gmail.com&password=Proyecto1234', options).getContentText();
+  var cell = sheet2.getRange("C2");
+  cell.setValue(token);
+
+}
+
+function feed(){
+  
+   var sheet = SpreadsheetApp.getActive().getSheetByName("Feed");
+  var sheet2 = SpreadsheetApp.getActive().getSheetByName("Max");
+  var lastRow = sheet.getLastRow();
+  sheet.getRange(2, 1, 10000,11).clear();
+  var token = sheet2.getRange("C3").getValue();
+  var a = CountColA();
+
+  var headers2 = {
+    "Accept": "application/json",
+    "Authorization" : "Bearer "+token,
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+    "Content-Type": "application/json"};  
+ var options2 = {
+    "async": true,
+    "crossDomain": true,
+    "method" : "GET",
+    "headers": headers2,
+  };
+  for(var i=0;i<10;i++){
+    var productos = UrlFetchApp.fetch('https://hiraoka.com.pe/rest/default/V1/products?searchCriteria%5BfilterGroups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5Bfield%5D=sku&searchCriteria%5BfilterGroups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5Bvalue%5D=%25'+i+'&searchCriteria%5BfilterGroups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5BconditionType%5D=like', options2).getContentText();
+    var parseo = JSON.parse(productos);
+    var resultado = arreglo(parseo);
+    lastRow = sheet.getLastRow();
+    a = CountColA();
+  sheet.getRange(a+1, 1, resultado.length, resultado[0].length).setValues(resultado);
+  }
+  }
+
+function arreglo(parseo){
+  var ids = [];
+  var sku = [];
+  var price = [];
+  var name = [];
+  var updated_at = [];
+  var url_key=[];
+  var meta_title=[];
+  var sale_price=[];
+  var category_ids=[""]
+  var marca=[];
+  var image = [];
+  var disponibilidad = [];
+  var i=0;
+  var j=0;
+  var k=0;
+   for (i in parseo.items){
+     ids[i]=parseo.items[i].id;
+     sku[i]=parseo.items[i].sku;
+     price[i]="PEN "+parseo.items[i].price;
+     name[i]=parseo.items[i].name;
+      for (j in parseo.items[i].custom_attributes){
+        if (parseo.items[i].custom_attributes[j].attribute_code == "url_key"){
+          if(parseo.items[i].custom_attributes[j].value==""){url_key[i]="";}
+          else{url_key[i]="https://hiraoka.com.pe/"+parseo.items[i].custom_attributes[j].value;}}
+      if (parseo.items[i].custom_attributes[j].attribute_code == "meta_title")
+        meta_title[i]=parseo.items[i].custom_attributes[j].value;
+      if (parseo.items[i].custom_attributes[j].attribute_code == "image") 
+        image[i]="https://hiraoka.com.pe/media/catalog/product"+parseo.items[i].custom_attributes[j].value;
+      if (parseo.items[i].custom_attributes[j].attribute_code == "special_price")
+        sale_price[i]="PEN "+parseo.items[i].custom_attributes[j].value;
+      if (parseo.items[i].custom_attributes[j].attribute_code == "marca")
+        marca[i]=parseo.items[i].custom_attributes[j].value;
+      if (parseo.items[i].custom_attributes[j].attribute_code == "category_ids"){
+        for(k in parseo.items[i].custom_attributes[j].value){
+          if(k != 0){
+            category_ids[i]=category_ids[i]+parseo.items[i].custom_attributes[j].value[k]+",";}
+          else{category_ids[i]=parseo.items[i].custom_attributes[j].value[k]+",";}
+        }}
+      }
+     updated_at[i]=parseo.items[i].updated_at;
+        
+   }
+  var x=[ids,sku,price,name,url_key,meta_title,sale_price,image,updated_at,marca,category_ids];
+  var y = transposeArray(x);
+  return y;
+}
+
+function transposeArray(array){
+  var result = [];
+  for (var col = 0; col < array[0].length; col++) { // Loop over array cols
+    result[col] = [];
+    for (var row = 0; row < array.length; row++) { // Loop over array rows
+      result[col][row] = array[row][col]; // Rotate
+    }
+  }
+  return result;
+}
+
+function safe(){
+  
+   var sheet = SpreadsheetApp.getActive().getSheetByName("Feed");
+  var sheet2 = SpreadsheetApp.getActive().getSheetByName("Max");
+  var lastRow = sheet.getLastRow();
+  var token = sheet2.getRange("C3").getValue();
+  var max = sheet2.getRange("C4").getValue();
+  if(max=="9")
+  {}
+  else{
+  var headers2 = {
+    "Accept": "application/json",
+    "Authorization" : "Bearer "+token,
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+    "Content-Type": "application/json"};  
+ var options2 = {
+    "async": true,
+    "crossDomain": true,
+    "method" : "GET",
+    "headers": headers2,
+  };
+  for(i=max;i<10;i++){
+    var productos = UrlFetchApp.fetch('https://hiraoka.com.pe/rest/default/V1/products?searchCriteria%5BfilterGroups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5Bfield%5D=sku&searchCriteria%5BfilterGroups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5Bvalue%5D=%25'+i+'&searchCriteria%5BfilterGroups%5D%5B0%5D%5Bfilters%5D%5B0%5D%5BconditionType%5D=like', options2).getContentText();
+    var parseo = JSON.parse(productos);
+    var resultado = arreglo(parseo);
+    lastRow = sheet.getLastRow();
+  sheet.getRange(lastRow+1, 1, resultado.length, resultado[0].length).setValues(resultado);
+  }
+  }
+  }
+ 
+function url(url) {
+
+    var fromText = 'title="Disponibilidad">';
+    var toText = '</';
+    var content = UrlFetchApp.fetch(url).getContentText();
+    var scraped = Parser
+                    .data(content)
+                    .from(fromText)
+                    .to(toText)
+                    .build();
+
+  return scraped;
+}
+
+function url2(url) {
+//var url = "https://hiraoka.com.pe/catalogsearch/result/?q=114140";
+  //M1lugvAXKKtUxn_vdAG9JZleS6DrsjUUV
+    var fromText = '<a class="product-item-link"';
+    var toText = '" title=';
+    var content = UrlFetchApp.fetch(url).getContentText();
+    var scraped = Parser
+                    .data(content)
+                    .from(fromText)
+                    .to(toText)
+                    .build();
+
+  return scraped;
+}
+
+function CountColA(){
+  var sheet = SpreadsheetApp.getActive().getSheetByName("Feed");
+  var data = sheet.getDataRange().getValues();
+  for(var i = data.length-1 ; i >=0 ; i--){
+    if (data[i][0] != null && data[i][0] != ''){
+      return i+1 ;
+    }
+  }
+}
+
+// define an array of all the object keys
+var headerRow = Object.keys(myObject);
+
+// define an array of all the object values
+var row = headerRow.map(function (key) { return myObject[key] });
+
+// define the contents of the range
+var contents = [
+  headerRow,
+  row
+];
+
+// select the range and set its values
+var ss = SpreadsheetApp.getActive();
+var rng = ss.getActiveSheet().getRange(1, 1, contents.length, headerRow.length)
+rng.setValues(contents)

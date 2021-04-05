@@ -1,0 +1,144 @@
+function main() {
+
+  //5. Other
+  //  b. AdExtensions
+  verifyAdExtensions();
+  
+   var NUMBER_OF_ADS = 2; // <-- this is the minimum number of ads in an AdGroup
+  verifyAdGroupNumberOfAds(NUMBER_OF_ADS);
+  
+}
+ 
+
+ 
+function verifyAdExtensions() {
+  
+  var spreadsheetId = "1wZuAYCkhZvoSkq8YAYZ9jxuVDoFcSAkAtvEZ1GvAoMg"
+  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheet = spreadsheet.getSheetByName("Assist Card BR").activate();
+  sheet.getRange(9, 1,2046, 15).clearContent()
+  
+  
+  /* ******PHONE EXTENSION ******** */
+  var row = 9
+
+      var campIter = AdWordsApp.campaigns()
+        .forDateRange("LAST_7_DAYS")
+        .withCondition("Impressions >= 1")
+        .withCondition('Status = ENABLED')
+        .withCondition("AdvertisingChannelType = SEARCH")
+        .get();
+    
+      while(campIter.hasNext()) {
+      var camp = campIter.next();
+      var phoneNumExtCount = camp.extensions().phoneNumbers().get().totalNumEntities();
+    
+        if (phoneNumExtCount == 0) {
+          warn('Campaign: "'+camp.getName()+'" is missing phone number extensions.');
+          sheet.getRange("A" + row).setValue(camp.getName());   
+          sheet.getRange("B"+row).setValue(phoneNumExtCount); 
+      var row = row + 1
+      } 
+    }
+ 
+  
+
+
+  
+   /* ******SITELINKS EXTENSION ******** */
+  
+  var row = 9
+  
+  var campIter = AdWordsApp.campaigns()
+        .forDateRange("LAST_7_DAYS")
+        .withCondition("Impressions >= 1")
+        .withCondition('Status = ENABLED')
+        .withCondition("AdvertisingChannelType = SEARCH")
+        .get();
+    
+      while(campIter.hasNext()) {
+      var camp = campIter.next();
+      var sitelinksExtCount = camp.extensions().sitelinks().get().totalNumEntities();
+    
+        if (sitelinksExtCount < 6) {
+          warn('Campaign: "'+camp.getName()+'" is missing phone number extensions.');
+          sheet.getRange("C" + row).setValue(camp.getName());   
+          sheet.getRange("D"+row).setValue(sitelinksExtCount); 
+      var row = row + 1
+      } 
+    }
+  
+  
+  /* *******CALLOUTS *****/
+  
+  
+  var row = 9
+
+  var calloutscount = AdWordsApp.extensions().sitelinks().get().totalNumEntities();  
+  
+  if(calloutscount == 0) {
+      
+  var campIter = AdWordsApp.campaigns()
+        .forDateRange("LAST_7_DAYS")
+        .withCondition("Impressions >= 1")
+        .withCondition('Status = ENABLED')
+        .withCondition("AdvertisingChannelType = SEARCH")
+        .get();
+    
+      while(campIter.hasNext()) {
+      var camp = campIter.next();
+      var calloutsExtCount = camp.extensions().callouts().get().totalNumEntities();
+    
+        if (calloutsExtCount == 0) {
+          warn('Campaign: "'+camp.getName()+'" is missing phone number extensions.');
+          sheet.getRange("E" + row).setValue(camp.getName());   
+          sheet.getRange("F"+row).setValue(calloutsExtCount); 
+      var row = row + 1
+      } 
+    }
+  }
+  }
+
+
+function verifyAdGroupNumberOfAds(requiredNumberOfAds) {
+    var spreadsheetId = "1wZuAYCkhZvoSkq8YAYZ9jxuVDoFcSAkAtvEZ1GvAoMg"
+  
+   var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheet = spreadsheet.getSheetByName("Assist Card BR").activate();
+  var row = 9
+  var agIter = AdWordsApp.adGroups()
+    .forDateRange("LAST_7_DAYS")
+    .withCondition("Impressions >= 1")
+    .withCondition('Status = ENABLED')
+    .withCondition('CampaignStatus = ENABLED')
+    .withCondition('AdGroupStatus = ENABLED')
+    .withCondition('CampaignName DOES_NOT_CONTAIN "DSA"')
+    .withCondition("AdvertisingChannelType = SEARCH")
+    .get();
+  while(agIter.hasNext()) {
+    var ag = agIter.next();
+    var adCount = ag.ads().withCondition('Status = ENABLED').get().totalNumEntities();
+    if(adCount < requiredNumberOfAds) {
+      warn('Campaign: "'+ag.getCampaign().getName()+'" AdGroup: "'+ag.getName()+'" does not have enough ads: '+adCount);
+      sheet.getRange("H" + row).setValue(ag.getCampaign().getName());  
+      sheet.getRange("I" + row).setValue(ag.getName());   
+      sheet.getRange("J"+row).setValue(adCount); 
+      var row = row + 1  
+    }
+  }
+  
+     //var recipient = "sebastian.battista@assistcard.com"
+   //var subject = "Recomendaciones"
+      //var body = Logger.getLog();
+      //MailApp.sendEmail(recipient, subject, body)
+}
+ 
+ 
+function warn(msg) {
+  Logger.log('WARNING: '+msg);
+ 
+}
+
+function info(msg) {
+  Logger.log(msg);
+}
