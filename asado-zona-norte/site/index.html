@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Asado Zona Norte</title>
+  <meta name="description" content="Comparador de precios de cortes para asado en supermercados y carnicerías de Zona Norte (GBA).">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <h1>Asado Zona Norte</h1>
+      <p class="sub">Precio por kilo de los cortes para asado en supermercados y carnicerías de Vicente López, San Isidro, Tigre, San Fernando y alrededores.</p>
+      <p class="meta" id="meta">Cargando precios…</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="banner" id="demo-banner" hidden>
+      Estás viendo <strong>datos de demostración</strong>. Los precios reales aparecen después de la primera corrida del scraper.
+    </div>
+
+    <section class="controls" aria-label="Filtros">
+      <div class="chips" id="cut-chips" role="tablist"></div>
+      <div class="row">
+        <fieldset class="stores" id="store-filter"><legend>Comercios</legend></fieldset>
+        <label class="toggle"><input type="checkbox" id="only-available" checked> Solo con stock</label>
+      </div>
+    </section>
+
+    <section id="summary" class="card">
+      <div class="card-head">
+        <h2>Precio por kilo, el más barato de cada comercio</h2>
+        <p class="hint">Tocá un corte para ver todos los productos.</p>
+      </div>
+      <div class="table-scroll"><table class="grid" id="summary-table"></table></div>
+    </section>
+
+    <section id="detail" class="card" hidden>
+      <div class="card-head">
+        <button class="back" id="back" type="button">← Todos los cortes</button>
+        <h2 id="detail-title"></h2>
+        <input type="search" id="q" placeholder="Filtrar por nombre…" aria-label="Filtrar productos por nombre">
+      </div>
+      <div id="trend"></div>
+      <ul class="products" id="products"></ul>
+    </section>
+
+    <section class="card" id="calc">
+      <div class="card-head">
+        <h2>Calculadora de asado</h2>
+        <p class="hint">Mix clásico: 40% asado, 25% vacío, 15% chorizo, 10% morcilla, 10% matambre.</p>
+      </div>
+      <div class="calc-inputs">
+        <label>Personas <input type="number" id="people" min="1" max="200" value="8"></label>
+        <label>Gramos por persona <input type="number" id="grams" min="100" max="1500" step="50" value="450"></label>
+      </div>
+      <p class="calc-total" id="calc-kg"></p>
+      <ol class="calc-results" id="calc-results"></ol>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    <p>Precios tomados de las tiendas online de cada supermercado; pueden variar según la sucursal. Los de carnicerías los carga la comunidad y muestran la fecha en que se relevaron.</p>
+  </footer>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
