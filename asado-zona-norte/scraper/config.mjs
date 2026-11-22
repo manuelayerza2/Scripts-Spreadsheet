@@ -15,6 +15,8 @@ export const STORES = [
 // `zona` = cobertura de envío confirmada; null = falta confirmar que llegue a Zona Norte.
 export const CARNICERIAS_ONLINE = [
   { id: 'cabana_juramento', name: 'Cabaña Juramento', base: 'https://cabanajuramento.com.ar', zona: 'San Isidro (Av. Diego Carman 55)' },
+  { id: 'biffe', name: 'Biffe', base: 'https://biffecarnespremium.com', zona: 'Tigre (Remeros Plaza) y Pilar' },
+  { id: 'don_vicente', name: 'Don Vicente', base: 'https://www.donvicentegourmet.com', zona: 'Pilar (La Lonja)' },
   { id: 'alimento_americano', name: 'Alimento Americano', base: 'https://alimentoamericano.com', zona: 'Tigre / Nordelta', porKg: true },
   { id: 'pampa_novillo', name: 'Pampa y Novillo', base: 'https://www.pampaynovillo.com.ar', zona: null },
   { id: 'curaco', name: 'Carnes Curaco', base: 'https://carnescuraco.com', zona: null },

@@ -298,6 +298,12 @@ async function init() {
     return;
   }
   const directory = mergeCarnicerias(data, Array.isArray(carnicerias) ? carnicerias : []);
+  const conPrecios = new Set(data.items.map((i) => i.store));
+  for (const s of data.stores) {
+    if (s.base && isCarniceria(s) && !conPrecios.has(s.id)) {
+      directory.push({ nombre: s.name, localidad: s.zona, url: s.base, nota: 'Tiene tienda online, pero todavía no pudimos leer sus precios.' });
+    }
+  }
   renderDirectory(directory);
   state.data = data;
   state.hist = hist;
