@@ -59,10 +59,17 @@
       <p class="calc-total" id="calc-kg"></p>
       <ol class="calc-results" id="calc-results"></ol>
     </section>
+    <section class="card" id="directory" hidden>
+      <div class="card-head">
+        <h2>Carnicerías de la zona sin precios cargados</h2>
+        <p class="hint">Si compraste en alguna, sumá los precios en <code>data/carnicerias.json</code>.</p>
+      </div>
+      <ul class="directory" id="directory-list"></ul>
+    </section>
   </main>
 
   <footer class="wrap foot">
-    <p>Precios tomados de las tiendas online de cada supermercado; pueden variar según la sucursal. Los de carnicerías los carga la comunidad y muestran la fecha en que se relevaron.</p>
+    <p>Precios tomados de las tiendas online de cada supermercado y carnicería; pueden variar según la sucursal o el envío. Los de carnicerías sin tienda online se cargan a mano y muestran la fecha en que se relevaron.</p>
   </footer>
 
   <script src="app.js" type="module"></script>

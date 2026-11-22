@@ -18,20 +18,32 @@ async function getJson(path, fallback) {
   }
 }
 
-// Las carnicerías cargadas a mano se suman como comercios más.
+// Las carnicerías cargadas a mano con precios se suman como comercios; las que no tienen precios van al directorio.
+// Cada precio puede ser un número ($/kg) o { "porKg": n, "nombre": "...", "nota": "..." }.
 function mergeCarnicerias(data, carnicerias) {
+  const directory = [];
   carnicerias.forEach((c, i) => {
+    const precios = Object.entries(c.precios || {});
+    if (!precios.length) {
+      directory.push(c);
+      return;
+    }
     const id = `carn_${i}`;
     data.stores.push({ id, name: c.nombre, localidad: c.localidad, kind: 'carniceria', ok: true, updatedAt: c.fecha });
-    for (const [cut, ppk] of Object.entries(c.precios || {})) {
-      if (!(ppk > 0)) continue;
+    for (const [cut, v] of precios) {
+      const p = typeof v === 'number' ? { porKg: v } : v || {};
+      if (!(p.porKg > 0)) continue;
       data.items.push({
-        store: id, cut, id: `${id}_${cut}`, name: `${data.cuts.find((x) => x.id === cut)?.name || cut} (${c.nombre})`,
-        price: ppk, pricePerKg: ppk, available: true, url: safeUrl(c.url), image: null, fecha: c.fecha,
+        store: id, cut, id: `${id}_${cut}`, name: p.nombre || data.cuts.find((x) => x.id === cut)?.name || cut,
+        price: p.porKg, pricePerKg: p.porKg, available: true, url: safeUrl(c.url), image: null, fecha: c.fecha, nota: p.nota,
       });
     }
   });
+  return directory;
 }
+
+const isCarniceria = (s) => s.kind === 'carniceria';
+const storeSubtitle = (s) => s.localidad || s.zona || (isCarniceria(s) && s.base ? 'envío a confirmar' : '');
 
 function visibleItems(cut) {
   return state.data.items.filter((i) =>
@@ -64,15 +76,33 @@ function renderChips() {
 }
 
 function renderStoreFilter() {
-  $('store-filter').innerHTML = '<legend>Comercios</legend>' + state.data.stores
-    .map((s) => `<label><input type="checkbox" value="${esc(s.id)}" ${state.stores.has(s.id) ? 'checked' : ''}> ${esc(s.name)}</label>`)
+  const box = (s) => `<label><input type="checkbox" value="${esc(s.id)}" ${state.stores.has(s.id) ? 'checked' : ''}> ${esc(s.name)}</label>`;
+  const supers = state.data.stores.filter((s) => !isCarniceria(s));
+  const carns = state.data.stores.filter(isCarniceria);
+  $('store-filter').innerHTML =
+    `<legend>Comercios</legend><div class="presets"><button type="button" data-preset="all">Todos</button><button type="button" data-preset="super">Solo súper</button><button type="button" data-preset="carn">Solo carnicerías</button></div>` +
+    `<div class="store-group"><span>Súper</span>${supers.map(box).join('')}</div>` +
+    (carns.length ? `<div class="store-group"><span>Carnicerías</span>${carns.map(box).join('')}</div>` : '');
+}
+
+function renderDirectory(list) {
+  if (!list.length) return;
+  $('directory').hidden = false;
+  $('directory-list').innerHTML = list
+    .map((c) => {
+      const url = safeUrl(c.url);
+      const name = url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(c.nombre)}</a>` : esc(c.nombre);
+      return `<li><strong>${name}</strong>${c.localidad ? ` · ${esc(c.localidad)}` : ''}${c.direccion ? ` · ${esc(c.direccion)}` : ''}${c.nota ? `<div class="unit">${esc(c.nota)}</div>` : ''}</li>`;
+    })
     .join('');
 }
 
 function renderSummary() {
-  const stores = state.data.stores.filter((s) => state.stores.has(s.id));
+  // Solo columnas de comercios que tengan algún precio con los filtros actuales.
+  const withData = new Set(visibleItems(null).map((i) => i.store));
+  const stores = state.data.stores.filter((s) => state.stores.has(s.id) && withData.has(s.id));
   const head = `<thead><tr><th>Corte</th>${stores
-    .map((s) => `<th>${esc(s.name)}${s.localidad ? `<small>${esc(s.localidad)}</small>` : ''}</th>`)
+    .map((s) => `<th>${esc(s.name)}${storeSubtitle(s) ? `<small>${esc(storeSubtitle(s))}</small>` : ''}</th>`)
     .join('')}<th>Diferencia</th></tr></thead>`;
   let body = '';
   let group = null;
@@ -105,7 +135,7 @@ function renderTrend(cutId) {
     box.innerHTML = '';
     return;
   }
-  const storeIds = state.data.stores.filter((s) => state.stores.has(s.id) && s.kind !== 'carniceria').map((s) => s.id);
+  const storeIds = state.data.stores.filter((s) => state.stores.has(s.id) && !s.id.startsWith('carn_')).map((s) => s.id);
   const series = storeIds
     .map((id, k) => ({ id, color: SERIES_COLORS[k % SERIES_COLORS.length], pts: days.map((d, x) => [x, state.hist[d]?.[cutId]?.[id]]).filter((p) => p[1] != null) }))
     .filter((s) => s.pts.length > 1);
@@ -150,6 +180,7 @@ function renderDetail() {
         !i.available ? '<span class="badge muted">Sin stock</span>' : '',
         i.stale ? '<span class="badge muted">Precio anterior</span>' : '',
         i.fecha ? `<span class="badge muted">Relevado ${esc(i.fecha)}</span>` : '',
+        i.nota ? `<span class="badge muted">${esc(i.nota)}</span>` : '',
       ].join('');
       const ppk = i.pricePerKg != null ? `<div class="ppk">${money(i.pricePerKg)}<span class="unit"> /kg</span></div>` : '<div class="unit">Sin precio por kg</div>';
       const unit = i.price !== i.pricePerKg ? `<div class="unit">${money(i.price)} el producto</div>` : '';
@@ -226,6 +257,15 @@ function bind() {
     }
   });
   $('back').addEventListener('click', () => openCut(null));
+  $('store-filter').addEventListener('click', (e) => {
+    const preset = e.target.closest('[data-preset]')?.dataset.preset;
+    if (!preset) return;
+    state.stores = new Set(state.data.stores
+      .filter((s) => preset === 'all' || (preset === 'carn') === isCarniceria(s))
+      .map((s) => s.id));
+    renderStoreFilter();
+    render();
+  });
   $('store-filter').addEventListener('change', (e) => {
     if (e.target.checked) state.stores.add(e.target.value);
     else state.stores.delete(e.target.value);
@@ -238,6 +278,10 @@ function bind() {
   $('q').addEventListener('input', (e) => {
     state.q = e.target.value;
     renderDetail();
+  });
+  window.addEventListener('hashchange', () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    openCut(state.data.cuts.some((c) => c.id === id) ? id : null);
   });
   $('people').addEventListener('input', renderCalc);
   $('grams').addEventListener('input', renderCalc);
@@ -253,7 +297,8 @@ async function init() {
     $('meta').textContent = 'No se pudieron cargar los precios.';
     return;
   }
-  mergeCarnicerias(data, Array.isArray(carnicerias) ? carnicerias : []);
+  const directory = mergeCarnicerias(data, Array.isArray(carnicerias) ? carnicerias : []);
+  renderDirectory(directory);
   state.data = data;
   state.hist = hist;
   state.stores = new Set(data.stores.map((s) => s.id));

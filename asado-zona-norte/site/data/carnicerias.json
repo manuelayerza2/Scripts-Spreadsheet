@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "nombre": "Rumen",
+    "localidad": null,
+    "fecha": "2026-11-19",
+    "fuente": "Presupuesto de compra",
+    "precios": {
+      "banderita": { "porKg": 58462, "nombre": "Banderita Selección" },
+      "ceja": { "porKg": 60000, "nombre": "Ceja Ojo de Bife" },
+      "medialuna_vacio": { "porKg": 50000, "nombre": "Medialuna de Vacío" },
+      "molleja_corazon": { "porKg": 50001, "nombre": "Molleja de Corazón" },
+      "chorizo_copetin": { "porKg": 22489, "nombre": "Chorizos Copetín La Divisa", "nota": "$8.996 el paquete de ~0,4 kg" }
+    }
+  },
+  { "nombre": "Frigorífico Panero", "localidad": "Olivos", "nota": "Delivery a Olivos, San Isidro, Nordelta y Tigre (según notas de prensa)." },
+  { "nombre": "Estancia Rafaela", "localidad": "San Isidro", "direccion": "Av. Juan Segundo Fernández 55" },
+  { "nombre": "Cabaña del Rey", "localidad": "San Isidro" },
+  { "nombre": "Carnes Acassuso", "localidad": "Acassuso", "url": "https://www.facebook.com/CarnesacassusoZonanorte/" }
+]
