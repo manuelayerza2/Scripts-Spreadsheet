@@ -235,7 +235,9 @@ function openCut(id) {
   state.cut = id || null;
   state.q = '';
   $('q').value = '';
-  history.replaceState(null, '', id ? `#${id}` : location.pathname);
+  try {
+    history.replaceState(null, '', id ? `#${id}` : location.pathname);
+  } catch {}
   render();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
